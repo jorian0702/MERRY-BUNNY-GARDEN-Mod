@@ -1,0 +1,48 @@
+# Game files (Steam managed)
+HEBEREKE BUNNY GARDEN.exe
+HEBEREKE BUNNY GARDEN_Data/
+MonoBleedingEdge/
+UnityPlayer.dll
+UnityCrashHandler64.exe
+Save/
+
+# BepInEx runtime files (downloaded, not source)
+BepInEx/core/
+BepInEx/config/
+BepInEx/patchers/
+BepInEx/cache/
+BepInEx/LogOutput.log
+winhttp.dll
+doorstop_config.ini
+.doorstop_version
+changelog.txt
+
+# Keep BepInEx plugins (mod output)
+!BepInEx/plugins/
+
+# Build artifacts
+ModTools/CheatMod/bin/
+ModTools/CheatMod/obj/
+
+# Downloaded files
+ModTools/BepInEx_win_x64.zip
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# Cursor agent files
+agent-tools/
+agent-transcripts/
+mcps/
+terminals/
+
+# Temp analysis files
+*.txt
+*.ps1
+!ModTools/**/*.ps1
+D3D12/
+
+# BepInEx plugins DLL (built artifact)
+BepInEx/plugins/*.dll

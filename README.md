@@ -1,75 +1,46 @@
-# MERRY BUNNY GARDEN Cheat Mod
+# MERRY BUNNY GARDEN - Cheat Mod
 
-BepInEx + Harmony cheat mod for MERRY BUNNY GARDEN (HEBEREKE BUNNY GARDEN).
+MERRY BUNNY GARDEN (HEBEREKE BUNNY GARDEN) 用の非公式 BepInEx チートプラグインです。
 
-## Features
+## 機能
 
-| Hotkey | Function |
-|--------|----------|
-| **F1** | Full Unlock (all cheats at once) |
-| **F2** | Max All Panties (108 types, count = 99) |
-| **F3** | All Episodes Cleared / S-Rank |
-| **F4** | Gallery / CG / Achievements Unlocked |
-| **F5** | All Text Read + Tutorials Done |
-| **F6** | All Costumes Unlocked |
-| **F10** | Toggle Help Overlay |
+| キー | 機能 |
+|------|------|
+| F1 | フルアンロック (以下全部を一括実行) |
+| F2 | 全パンツ所持数MAX (99個) |
+| F3 | 全エピソード Sランククリア済み |
+| F4 | ギャラリー / CG / 実績解放 |
+| F5 | 全テキスト既読 / チュートリアル完了 |
+| F6 | 全コスチューム解放 |
+| F7 | Steam実績全解除 |
+| F10 | ヘルプ表示切替 |
 
-### Detailed Breakdown
+## 技術スタック
 
-**Full Unlock (F1)** calls the game's built-in `UnlockAll()` on both `GameData` and `SystemData`, then applies every other cheat below.
+- C# / .NET Standard 2.1
+- [BepInEx 5](https://github.com/BepInEx/BepInEx) (Unity Mono)
+- [HarmonyX](https://github.com/BepInEx/HarmonyX) によるランタイムパッチ
+- Unity IMGUI によるオーバーレイ UI
+- リフレクションによるセーブデータ直接操作
 
-**Max Panties (F2)** sets all 108 panty types (`Pi001_01` ~ `Pi030_02`) to count 99.
+## ビルド
 
-**All S-Rank (F3)** marks all 9 stages (`Stage01` ~ `Stage09`) as Cleared with S-rank on both Normal and Hard difficulty, with a best time of 30.0s.
-
-**Gallery Unlock (F4)** unlocks all Event CGs, Minigame entries, and all 20 achievements (AfterClosing, NightRoutine, GrandEnding, PantsMaster, character endings, etc.).
-
-**Text Read (F5)** marks all dialogue as read and all tutorials as completed.
-
-**Costumes (F6)** unlocks all costumes for all characters (Kana, Rin, Miuka): Uniform, Swimwear, Casual, Babydoll, Shirt, BunnyGirl, Topless, GoldenBunny.
-
-## Requirements
-
-- .NET SDK 6.0+ (for building)
-- MERRY BUNNY GARDEN (Steam version)
-
-## Quick Setup
-
-```powershell
-cd "d:\SteamLibrary\steamapps\common\MERRY BUNNY GARDEN\ModTools"
-.\setup_bepinex.ps1
+```bash
+dotnet build ModTools/CheatMod/CheatMod.csproj -c Release
 ```
 
-This script will:
-1. Download and install BepInEx 5.4.23.2
-2. Build the cheat mod
-3. Copy it to `BepInEx\plugins\`
+出力先: `ModTools/CheatMod/bin/Release/netstandard2.1/MerryBunnyCheat.dll`
 
-## Manual Setup
+## インストール
 
-### 1. Install BepInEx
+1. [BepInEx 5](https://github.com/BepInEx/BepInEx/releases) をゲームディレクトリに導入
+2. ビルドした `MerryBunnyCheat.dll` を `BepInEx/plugins/` に配置
+3. ゲームを起動し、F10 でヘルプを確認
 
-Download [BepInEx 5.4.23.2 (x64)](https://github.com/BepInEx/BepInEx/releases/tag/v5.4.23.2) and extract to the game root folder.
+## ダウンロード
 
-### 2. Build
+[Releases](../../releases) からビルド済み DLL をダウンロードできます。
 
-```powershell
-cd "d:\SteamLibrary\steamapps\common\MERRY BUNNY GARDEN\ModTools\CheatMod"
-dotnet build -c Release
-```
+## 免責事項
 
-### 3. Install
-
-Copy `ModTools\CheatMod\bin\Release\netstandard2.1\MerryBunnyCheat.dll` to `BepInEx\plugins\`.
-
-### 4. Play
-
-Launch the game. Press **F10** for the help overlay.
-
-## Technical Details
-
-- **Engine:** Unity 6 (6000.0.31f1), Mono
-- **Mod Loader:** BepInEx 5.4.x + Harmony 2.x
-- **Save Location:** `%USERPROFILE%\AppData\LocalLow\Qureate\HEBEREKE BUNNY GARDEN\Save\`
-- **Target Assembly:** `Assembly-CSharp.dll`
-- **Namespaces:** `GB.Game.GameData`, `GB.Game.SystemData`, `GB.Save.Saves`
+本プロジェクトは非公式のファンメイドMODであり、ゲーム開発元とは一切関係ありません。自己責任でご利用ください。

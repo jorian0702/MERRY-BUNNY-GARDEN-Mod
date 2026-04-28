@@ -32,6 +32,14 @@
       <HintPath>..\..\HEBEREKE BUNNY GARDEN_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="Unity.InputSystem">
+      <HintPath>..\..\HEBEREKE BUNNY GARDEN_Data\Managed\Unity.InputSystem.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>..\..\HEBEREKE BUNNY GARDEN_Data\Managed\com.rlabrecque.steamworks.net.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
     <Reference Include="UnityEngine.IMGUIModule">
       <HintPath>..\..\HEBEREKE BUNNY GARDEN_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
       <Private>false</Private>

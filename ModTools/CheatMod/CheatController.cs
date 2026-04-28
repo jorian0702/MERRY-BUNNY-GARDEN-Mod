@@ -1,7 +1,9 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using GB.Save;
 using GB.Game;
 using HarmonyLib;
+using Steamworks;
 using System;
 using System.Reflection;
 
@@ -18,6 +20,13 @@ namespace MerryBunnyCheat
         private GUIStyle _textStyle;
         private GUIStyle _msgStyle;
 
+        private static bool KeyPressed(Key key)
+        {
+            var kb = Keyboard.current;
+            if (kb == null) return false;
+            return kb[key].wasPressedThisFrame;
+        }
+
         private void Update()
         {
             if (SavesRef == null)
@@ -25,18 +34,19 @@ namespace MerryBunnyCheat
                 _findTimer -= Time.unscaledDeltaTime;
                 if (_findTimer <= 0f)
                 {
-                    _findTimer = 3f;
-                    TryFindSaves();
+                    _findTimer = 5f;
+                    Plugin.Log.LogInfo("[Cheat] Waiting for save data...");
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.F1))  { ApplyFullUnlock();       ShowMsg("FULL UNLOCK!"); }
-            if (Input.GetKeyDown(KeyCode.F2))  { ApplyMaxPanties();       ShowMsg("ALL PANTIES MAX (99)!"); }
-            if (Input.GetKeyDown(KeyCode.F3))  { ApplyAllSRank();         ShowMsg("ALL EPISODES S-RANK!"); }
-            if (Input.GetKeyDown(KeyCode.F4))  { ApplyGalleryUnlock();    ShowMsg("GALLERY / CG / ACHIEVEMENTS UNLOCKED!"); }
-            if (Input.GetKeyDown(KeyCode.F5))  { ApplyTextRead();         ShowMsg("ALL TEXT READ / TUTORIALS DONE!"); }
-            if (Input.GetKeyDown(KeyCode.F6))  { ApplyUnlockCostumes();   ShowMsg("ALL COSTUMES UNLOCKED!"); }
-            if (Input.GetKeyDown(KeyCode.F10)) { _showHelp = !_showHelp; }
+            if (KeyPressed(Key.F1))  { ApplyFullUnlock();       ShowMsg("FULL UNLOCK!"); }
+            if (KeyPressed(Key.F2))  { ApplyMaxPanties();       ShowMsg("ALL PANTIES MAX (99)!"); }
+            if (KeyPressed(Key.F3))  { ApplyAllSRank();         ShowMsg("ALL EPISODES S-RANK!"); }
+            if (KeyPressed(Key.F4))  { ApplyGalleryUnlock();    ShowMsg("GALLERY / CG / ACHIEVEMENTS UNLOCKED!"); }
+            if (KeyPressed(Key.F5))  { ApplyTextRead();         ShowMsg("ALL TEXT READ / TUTORIALS DONE!"); }
+            if (KeyPressed(Key.F6))  { ApplyUnlockCostumes();   ShowMsg("ALL COSTUMES UNLOCKED!"); }
+            if (KeyPressed(Key.F7))  { UnlockSteamAchievements(); ShowMsg("STEAM ACHIEVEMENTS UNLOCKED!"); }
+            if (KeyPressed(Key.F10)) { _showHelp = !_showHelp; }
 
             if (_msgTimer > 0f) _msgTimer -= Time.unscaledDeltaTime;
         }
@@ -47,8 +57,8 @@ namespace MerryBunnyCheat
 
             if (_showHelp)
             {
-                GUI.Box(new Rect(8, 8, 420, 230), "");
-                GUI.Label(new Rect(18, 12, 400, 30), "Merry Bunny Cheat", _titleStyle);
+                GUI.Box(new Rect(8, 8, 440, 260), "");
+                GUI.Label(new Rect(18, 12, 420, 30), "Merry Bunny Cheat", _titleStyle);
 
                 float y = 48;
                 Line(ref y, "F1",  "Full Unlock (all cheats at once)");
@@ -57,11 +67,12 @@ namespace MerryBunnyCheat
                 Line(ref y, "F4",  "Gallery / CG / Achievements");
                 Line(ref y, "F5",  "All Text Read + Tutorials Done");
                 Line(ref y, "F6",  "All Costumes Unlocked");
+                Line(ref y, "F7",  "Unlock Steam Achievements");
                 Line(ref y, "F10", "Toggle This Help");
 
                 string status = SavesRef != null ? "Save: OK" : "Save: not loaded yet";
                 _textStyle.normal.textColor = SavesRef != null ? Color.green : Color.red;
-                GUI.Label(new Rect(18, y + 4, 400, 22), status, _textStyle);
+                GUI.Label(new Rect(18, y + 4, 420, 22), status, _textStyle);
                 _textStyle.normal.textColor = Color.white;
             }
 
@@ -81,7 +92,7 @@ namespace MerryBunnyCheat
             _textStyle.normal.textColor = Color.cyan;
             GUI.Label(new Rect(18, y, 50, 22), key, _textStyle);
             _textStyle.normal.textColor = Color.white;
-            GUI.Label(new Rect(72, y, 360, 22), desc, _textStyle);
+            GUI.Label(new Rect(72, y, 380, 22), desc, _textStyle);
             y += 24;
         }
 
@@ -113,34 +124,6 @@ namespace MerryBunnyCheat
 
         private void ShowMsg(string msg) { _lastMsg = msg; _msgTimer = 3f; }
 
-        private void TryFindSaves()
-        {
-            try
-            {
-                var gsType = typeof(GameData).Assembly.GetType("GB.Game.GameState");
-                if (gsType == null) return;
-
-                var saveField = AccessTools.Field(gsType, "_save");
-                if (saveField == null) return;
-
-                var instances = FindObjectsByType(gsType, FindObjectsSortMode.None);
-                foreach (var inst in instances)
-                {
-                    var saves = saveField.GetValue(inst) as Saves;
-                    if (saves != null)
-                    {
-                        SavesRef = saves;
-                        Plugin.Log.LogInfo("[Cheat] Saves reference found via GameState scan");
-                        return;
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Plugin.Log.LogWarning($"[Cheat] TryFindSaves: {e.Message}");
-            }
-        }
-
         private GameData GetGameData()
         {
             try { return SavesRef?.GameData; }
@@ -165,18 +148,15 @@ namespace MerryBunnyCheat
                 return;
             }
 
-            try
-            {
-                gd.UnlockAll();
-                sd.UnlockAll();
-            }
-            catch (Exception e) { Plugin.Log.LogWarning($"[Cheat] UnlockAll: {e.Message}"); }
+            try { gd.UnlockAll(); } catch (Exception e) { Plugin.Log.LogWarning($"[Cheat] GameData.UnlockAll: {e.Message}"); }
+            try { sd.UnlockAll(); } catch (Exception e) { Plugin.Log.LogWarning($"[Cheat] SystemData.UnlockAll: {e.Message}"); }
 
             ApplyUnlockCostumes();
             ApplyMaxPanties();
             ApplyAllSRank();
             ApplyGalleryUnlock();
             ApplyTextRead();
+            UnlockSteamAchievements();
 
             Plugin.Log.LogInfo("[Cheat] === FULL UNLOCK COMPLETE ===");
         }
@@ -252,8 +232,10 @@ namespace MerryBunnyCheat
                         {
                             var stat = stats.GetValue(j);
                             bestTimeF?.SetValue(stat, 30.0f);
+
                             if (rankF != null)
-                                rankF.SetValue(stat, Enum.ToObject(rankF.FieldType, 4)); // S rank
+                                SetFieldSmart(stat, rankF, 4);
+
                             stats.SetValue(stat, j);
                         }
                     }
@@ -331,7 +313,7 @@ namespace MerryBunnyCheat
                         {
                             var costume = costumes.GetValue(j);
                             if (stateF != null)
-                                stateF.SetValue(costume, Enum.ToObject(stateF.FieldType, 2)); // Unlocked
+                                SetFieldSmart(costume, stateF, 2); // Unlocked
                             cosNot?.SetValue(costume, true);
                             costumes.SetValue(costume, j);
                         }
@@ -345,7 +327,89 @@ namespace MerryBunnyCheat
             catch (Exception e) { Plugin.Log.LogError($"[Cheat] Costumes: {e}"); }
         }
 
+        // ─── F7: Steam Achievements ───────────────────────────────
+        private void UnlockSteamAchievements()
+        {
+            try
+            {
+                if (!SteamAPI.IsSteamRunning())
+                {
+                    Plugin.Log.LogWarning("[Cheat] Steam is not running");
+                    ShowMsg("Steam is not running!");
+                    return;
+                }
+
+                SteamUserStats.RequestCurrentStats();
+
+                uint count = SteamUserStats.GetNumAchievements();
+                int unlocked = 0;
+                for (uint i = 0; i < count; i++)
+                {
+                    string name = SteamUserStats.GetAchievementName(i);
+                    if (!string.IsNullOrEmpty(name))
+                    {
+                        bool alreadyUnlocked;
+                        SteamUserStats.GetAchievement(name, out alreadyUnlocked);
+                        if (!alreadyUnlocked)
+                        {
+                            SteamUserStats.SetAchievement(name);
+                            unlocked++;
+                        }
+                    }
+                }
+
+                SteamUserStats.StoreStats();
+                Plugin.Log.LogInfo($"[Cheat] Steam: {unlocked} new achievements unlocked (total: {count})");
+            }
+            catch (Exception e) { Plugin.Log.LogError($"[Cheat] SteamAchievements: {e}"); }
+        }
+
         // ─── Utility ──────────────────────────────────────────────
+
+        private static void SetFieldSmart(object target, FieldInfo field, int value)
+        {
+            var ft = field.FieldType;
+
+            if (ft.IsEnum)
+            {
+                field.SetValue(target, Enum.ToObject(ft, value));
+                return;
+            }
+
+            if (ft.IsValueType && !ft.IsPrimitive)
+            {
+                var instance = Activator.CreateInstance(ft);
+                var innerFields = ft.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+                foreach (var f in innerFields)
+                {
+                    if (f.FieldType.IsEnum)
+                    {
+                        f.SetValue(instance, Enum.ToObject(f.FieldType, value));
+                        field.SetValue(target, instance);
+                        return;
+                    }
+                    if (f.FieldType == typeof(int))
+                    {
+                        f.SetValue(instance, value);
+                        field.SetValue(target, instance);
+                        return;
+                    }
+                    if (f.FieldType == typeof(byte))
+                    {
+                        f.SetValue(instance, (byte)value);
+                        field.SetValue(target, instance);
+                        return;
+                    }
+                }
+
+                Plugin.Log.LogWarning($"[Cheat] SetFieldSmart: could not set {field.Name} (type {ft.FullName}), inner fields: {string.Join(", ", Array.ConvertAll(innerFields, f => $"{f.FieldType.Name} {f.Name}"))}");
+                return;
+            }
+
+            field.SetValue(target, value);
+        }
+
         private static void SetAllUnlockStates(SystemData sd, string fieldName)
         {
             var field = AccessTools.Field(typeof(SystemData), fieldName);
@@ -353,9 +417,35 @@ namespace MerryBunnyCheat
             if (arr == null) return;
 
             var elemType = arr.GetType().GetElementType();
-            object unlocked = Enum.ToObject(elemType, 2); // UnlockStates.Unlocked
-            for (int i = 0; i < arr.Length; i++)
-                arr.SetValue(unlocked, i);
+
+            if (elemType.IsEnum)
+            {
+                object unlocked = Enum.ToObject(elemType, 2);
+                for (int i = 0; i < arr.Length; i++)
+                    arr.SetValue(unlocked, i);
+            }
+            else if (elemType.IsValueType)
+            {
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    var instance = Activator.CreateInstance(elemType);
+                    var innerFields = elemType.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                    foreach (var f in innerFields)
+                    {
+                        if (f.FieldType.IsEnum)
+                        {
+                            f.SetValue(instance, Enum.ToObject(f.FieldType, 2));
+                            break;
+                        }
+                        if (f.FieldType == typeof(int))
+                        {
+                            f.SetValue(instance, 2);
+                            break;
+                        }
+                    }
+                    arr.SetValue(instance, i);
+                }
+            }
         }
 
         private static void SetAllBoolFlags(SystemData sd, string fieldName)
